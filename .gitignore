@@ -1,0 +1,6 @@
+.DS_Store
+.ipynb_checkpoints/
+
+# Anciens dossiers par module, conserves temporairement en local (contenu fusionne dans notebooks/ et data/)
+/Introduction au Machine Learning et Prétraitement des Données/
+/Apprentissage Supervisé - Classification/
