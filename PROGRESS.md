@@ -20,9 +20,26 @@
 ## Où on en est (suite, 2026-09-09)
 - nb_02 (Apprentissage Supervisé - Classification) a été exécuté entièrement
   (29 cellules de code, aucune erreur). Il n'avait jamais été lancé avant.
+  ⚠️ À ce stade, les 20 cellules d'exercice étaient encore vides (juste un
+  commentaire), donc l'exécution "sans erreur" ne prouvait rien.
+
+## Où on en est (suite 2, 2026-09-09)
+- Le notebook `Apprentissage Supervisé - Classification/notebooks/nb_02_...`
+  (dossier local, ignoré par git) a été complété : les 29 cellules de code
+  contiennent maintenant du vrai code (chargement Iris, EDA, prétraitement,
+  split train/test + standardisation, entraînement de 5 modèles — KNN,
+  Régression Logistique, SVM linéaire, Arbre de Décision, Random Forest —,
+  prédictions, interprétation des coefficients/importances, et évaluation
+  complète avec matrices de confusion + accuracy/precision/recall/F1).
+- Exécuté de bout en bout avec `jupyter nbconvert --execute` : 0 erreur sur
+  les 29 cellules. Scores obtenus : SVM 96.7%, les autres modèles ~93.3%
+  d'accuracy sur le jeu de test.
 
 ## Reste à faire
 - Vérifier sur GitHub que le notebook nb_01 affiche bien le bon contenu.
 - Décider si on supprime les anciens dossiers de module maintenant qu'ils
   sont dupliqués (à faire quand tu seras prêt·e).
-- Continuer le travail sur nb_02 (Apprentissage Supervisé / Classification).
+- Décider si le nb_02 complété (dans le dossier local ignoré par git) doit
+  être copié vers `notebooks/` à la racine du repo pour être poussé sur
+  GitHub, comme cela a été fait pour nb_01 (le nb_02 actuellement sur GitHub
+  a des cellules vides).
