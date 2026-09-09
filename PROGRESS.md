@@ -35,11 +35,13 @@
   les 29 cellules. Scores obtenus : SVM 96.7%, les autres modèles ~93.3%
   d'accuracy sur le jeu de test.
 
+## Où on en est (suite 3, 2026-09-09)
+- Le nb_02 complété a été copié vers `notebooks/nb_02_Apprentissage_Supervisé_Classification.ipynb`
+  (racine du repo, suivi par git) et commité. Reste à pousser sur GitHub
+  (`git push`).
+
 ## Reste à faire
+- Pousser les derniers commits sur GitHub (`git push`).
 - Vérifier sur GitHub que le notebook nb_01 affiche bien le bon contenu.
 - Décider si on supprime les anciens dossiers de module maintenant qu'ils
   sont dupliqués (à faire quand tu seras prêt·e).
-- Décider si le nb_02 complété (dans le dossier local ignoré par git) doit
-  être copié vers `notebooks/` à la racine du repo pour être poussé sur
-  GitHub, comme cela a été fait pour nb_01 (le nb_02 actuellement sur GitHub
-  a des cellules vides).
