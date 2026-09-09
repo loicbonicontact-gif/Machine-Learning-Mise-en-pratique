@@ -17,8 +17,12 @@
   local (pas supprimés) mais ignorés par git (ajoutés au `.gitignore`) car
   leur contenu est dupliqué dans `notebooks/` et `data/` à la racine.
 
+## Où on en est (suite, 2026-09-09)
+- nb_02 (Apprentissage Supervisé - Classification) a été exécuté entièrement
+  (29 cellules de code, aucune erreur). Il n'avait jamais été lancé avant.
+
 ## Reste à faire
 - Vérifier sur GitHub que le notebook nb_01 affiche bien le bon contenu.
 - Décider si on supprime les anciens dossiers de module maintenant qu'ils
   sont dupliqués (à faire quand tu seras prêt·e).
-- Continuer le travail sur le notebook nb_01 (Introduction ML / Prétraitement).
+- Continuer le travail sur nb_02 (Apprentissage Supervisé / Classification).
