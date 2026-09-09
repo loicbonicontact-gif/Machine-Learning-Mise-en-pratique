@@ -41,7 +41,6 @@
   (`git push`).
 
 ## Reste à faire
-- Pousser les derniers commits sur GitHub (`git push`).
 - Vérifier sur GitHub que le notebook nb_01 affiche bien le bon contenu.
 - Décider si on supprime les anciens dossiers de module maintenant qu'ils
   sont dupliqués (à faire quand tu seras prêt·e).
