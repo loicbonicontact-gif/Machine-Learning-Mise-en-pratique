@@ -111,11 +111,33 @@
 - Fichier de travail : dossier local `Dashboard CrediTrust Scoring/` (ignoré
   par git, comme les modules précédents).
 
+## Où on en est (suite 7, 2026-09-15)
+- Dashboard amélioré suite aux retours de Loïc :
+  - Onglet "Analyse de données" gardé (requis par la consigne) mais allégé
+    à l'essentiel (4 KPIs + 2 graphiques).
+  - Design "pro" appliqué via le skill `ui-ux-pro-max` : palette fintech
+    bleu marine validée WCAG AA, icônes SVG (Heroicons) à la place des
+    emojis, cartes KPI en HTML personnalisées (corrige un vrai bug :
+    `st.metric` tronquait le texte "Arbre de Décision" dans la barre
+    latérale).
+  - Chemins de fichiers rendus robustes (`Path(__file__)` au lieu de
+    chemins relatifs `../data/...`) pour fonctionner aussi bien en local
+    que sur Streamlit Community Cloud (qui lance l'app depuis la racine du
+    dépôt, pas depuis `dashboard/`).
+  - `dashboard/requirements.txt` ajouté (streamlit, pandas, scikit-learn,
+    plotly, joblib, versions figées) pour que Streamlit Cloud installe le
+    bon environnement.
+- **Poussé sur GitHub** (`git push`, avec l'accord de Loïc car il voulait
+  publier l'app en ligne) : 13 commits (nb_03 complet + dashboard complet).
+
 ## Reste à faire
-- `nb_03` et `dashboard/` sont commités localement mais **pas encore
-  poussés** sur GitHub — demander confirmation avant `git push`.
-- Tester manuellement l'app dans un vrai navigateur (`streamlit run app.py`
-  depuis `dashboard/`) — pour l'instant seulement testé automatiquement.
+- Connecter le dépôt GitHub à Streamlit Community Cloud pour obtenir un
+  lien public (étape à faire par Loïc lui-même : il doit se connecter avec
+  son compte GitHub sur share.streamlit.io et choisir le fichier
+  `dashboard/app.py`).
+- Tester manuellement l'app dans un vrai navigateur en local — déjà fait
+  par Loïc, quelques retours de design déjà traités (troncature du texte,
+  emojis, allègement de l'onglet analyse).
 - Copier le nb_02 complété avec réponses (dossier local) vers `notebooks/`
   à la racine, commiter et pousser (si Loïc le souhaite un jour).
 - Vérifier sur GitHub que le notebook nb_01 affiche bien le bon contenu.
