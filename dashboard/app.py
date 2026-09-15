@@ -43,7 +43,7 @@ tab_analyse, tab_simulateur = st.tabs(["📊 Analyse de données", "🧮 Simulat
 with tab_analyse:
     st.header("Analyse exploratoire du portefeuille de prêts")
 
-    # --- KPIs ---
+    # --- KPIs essentiels ---
     n_dossiers = len(df)
     taux_refus = (df["Loan_Status"] == "N").mean() * 100
     revenu_median = df["ApplicantIncome"].median()
@@ -66,29 +66,10 @@ with tab_analyse:
         ax.set_ylabel("Nombre de dossiers")
         st.pyplot(fig)
 
+    with col_right:
         st.subheader("Taux de refus selon l'historique de crédit")
         credit_ct = pd.crosstab(df["Credit_History"], df["Loan_Status"], normalize="index") * 100
         st.dataframe(credit_ct.round(1))
-
-    with col_right:
-        st.subheader("Revenu du demandeur selon la décision")
-        fig, ax = plt.subplots()
-        sns.boxplot(data=df, x="Loan_Status", y="ApplicantIncome", order=["Y", "N"], ax=ax)
-        st.pyplot(fig)
-
-        st.subheader("Répartition par zone géographique")
-        fig, ax = plt.subplots()
-        sns.countplot(data=df, x="Property_Area", hue="Loan_Status", hue_order=["Y", "N"], ax=ax)
-        st.pyplot(fig)
-
-    st.subheader("Distribution du montant du prêt")
-    property_filter = st.selectbox(
-        "Filtrer par zone géographique", ["Toutes"] + sorted(df["Property_Area"].unique())
-    )
-    filtered_df = df if property_filter == "Toutes" else df[df["Property_Area"] == property_filter]
-    fig, ax = plt.subplots()
-    sns.histplot(filtered_df["LoanAmount"].dropna(), kde=True, ax=ax)
-    st.pyplot(fig)
 
 
 # ============================================================
