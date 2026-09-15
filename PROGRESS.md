@@ -86,9 +86,36 @@
   Loïc : on ne touche pas à `notebooks/nb_01` ni `nb_02` tant que ce n'est
   pas redemandé explicitement.
 
+## Où on en est (suite 6, 2026-09-15)
+- Activité 4 (Dashboard Streamlit) réalisée : dossier `dashboard/` à la
+  racine (suivi par git) avec `app.py`, `train_model.py` et `models/`
+  (modèle + prétraitement sauvegardés).
+- `train_model.py` reproduit exactement le prétraitement/entraînement de
+  `nb_03` (nettoyage, split, remplissage médiane/mode appris sur le train,
+  encodage `get_dummies`, `StandardScaler`) et entraîne le modèle retenu
+  dans l'Activité 3 (Arbre de Décision, choix confirmé par Loïc). Sauvegarde
+  le modèle, le scaler et les infos de prétraitement (médianes, modes,
+  colonnes encodées) avec `joblib` dans `models/`.
+- `app.py` a 2 onglets :
+  - **Analyse de données** : KPIs (nb dossiers, taux de refus, revenu médian,
+    rappel du modèle) + graphiques interactifs (répartition des décisions,
+    revenu vs décision, taux de refus par historique de crédit, filtre par
+    zone géographique).
+  - **Simulateur** : formulaire (revenu, montant du prêt, historique de
+    crédit, etc.) qui applique le même prétraitement que l'entraînement et
+    affiche la décision (accordé/refusé) + probabilité de risque.
+- Testé avec `streamlit.testing.v1.AppTest` (exécution du script + simulation
+  de 2 soumissions de formulaire : un profil sûr → "sûr" 0% risque, un profil
+  sans historique de crédit → "risqué" 100% risque) : aucune exception.
+- `streamlit` installé (gratuit, package Python).
+- Fichier de travail : dossier local `Dashboard CrediTrust Scoring/` (ignoré
+  par git, comme les modules précédents).
+
 ## Reste à faire
-- `nb_03` est commité localement mais **pas encore poussé** sur GitHub —
-  demander confirmation avant `git push`.
+- `nb_03` et `dashboard/` sont commités localement mais **pas encore
+  poussés** sur GitHub — demander confirmation avant `git push`.
+- Tester manuellement l'app dans un vrai navigateur (`streamlit run app.py`
+  depuis `dashboard/`) — pour l'instant seulement testé automatiquement.
 - Copier le nb_02 complété avec réponses (dossier local) vers `notebooks/`
   à la racine, commiter et pousser (si Loïc le souhaite un jour).
 - Vérifier sur GitHub que le notebook nb_01 affiche bien le bon contenu.
