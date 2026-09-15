@@ -40,7 +40,47 @@
   (racine du repo, suivi par git) et commité. Reste à pousser sur GitHub
   (`git push`).
 
+## Où on en est (suite 4, 2026-09-11)
+- Répondu à TOUTES les questions du nb_02 (quiz 10 scénarios + 23 cellules
+  "Question") directement dans les cellules markdown, en français, avec les
+  vraies valeurs observées. Code non modifié (il était correct).
+- Notebook ré-exécuté de bout en bout : 29 cellules de code, 0 erreur.
+  Fichier édité : dossier local `Apprentissage Supervisé - Classification/
+  notebooks/` (ignoré par git). ⚠️ Pas encore copié vers `notebooks/` racine
+  ni commité/poussé.
+
+## Où on en est (suite 5, 2026-09-15)
+- Activité 3 (projet CrediTrust Scoring) réalisée : nouveau notebook
+  `nb_03_Modélisation_CrediTrust_Scoring.ipynb`, basé sur `data/loan_data.csv`.
+  Contenu : EDA (facteurs de risque, `Credit_History` ressort comme facteur
+  dominant), prétraitement sans fuite de données (split train/test avant
+  imputation/encodage/scaling, pipelines scikit-learn), entraînement de
+  5 modèles de classification binaire (Logistique, Arbre de Décision,
+  Random Forest, KNN, SVM linéaire), cible encodée comme "risque"
+  (1 = prêt refusé) pour que le rappel corresponde bien à la réduction des
+  Faux Négatifs métier, comparaison des modèles avec priorité au rappel,
+  interprétation (coefficients de la régression logistique + importances
+  de la random forest).
+- Exécuté de bout en bout (`jupyter nbconvert --execute`) : 18 cellules de
+  code, 0 erreur. Meilleur rappel sur la classe risque : Arbre de Décision
+  (rappel 0.53, accuracy 0.66) ; Régression Logistique/SVM plus précis mais
+  moins de rappel.
+- Fichier de travail : dossier local `Modélisation - CrediTrust Scoring/`
+  (ignoré par git, comme les modules précédents). Copié vers
+  `notebooks/nb_03_Modélisation_CrediTrust_Scoring.ipynb` à la racine
+  (suivi par git).
+- ⚠️ Demande de réorganisation du dossier (fusionner/supprimer les anciens
+  dossiers de module 1 et 2) mise de côté pour l'instant à la demande de
+  Loïc : on ne touche pas à `notebooks/nb_01` ni `nb_02` tant que ce n'est
+  pas redemandé explicitement.
+
 ## Reste à faire
+- Commiter `nb_03` (racine `notebooks/`), `.gitignore` et cette mise à jour
+  de `PROGRESS.md`. Demander avant de pousser sur GitHub (`git push`).
+- Copier le nb_02 complété avec réponses (dossier local) vers `notebooks/`
+  à la racine, commiter et pousser (si Loïc le souhaite un jour).
 - Vérifier sur GitHub que le notebook nb_01 affiche bien le bon contenu.
-- Décider si on supprime les anciens dossiers de module maintenant qu'ils
-  sont dupliqués (à faire quand tu seras prêt·e).
+- Décider si on supprime un jour les anciens dossiers de module (mis en
+  pause pour l'instant, voir ci-dessus).
+- Décider quoi faire de `Aide_Memoire_Machine_Learning.html` (non suivi
+  par git actuellement).
