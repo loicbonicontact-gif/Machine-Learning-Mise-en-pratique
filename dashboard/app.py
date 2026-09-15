@@ -177,7 +177,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-st.caption("Outil d'aide à la décision pour l'octroi de prêts, basé sur le modèle de l'Activité 3.")
+st.caption("Outil d'aide à la décision pour l'octroi de prêts.")
 
 tab_analyse, tab_simulateur = st.tabs(["Analyse de données", "Simulateur de demande"])
 
@@ -246,7 +246,7 @@ with tab_analyse:
 
     st.caption(
         "`Credit_History` (avoir déjà bien remboursé un crédit) est le facteur de risque "
-        "le plus déterminant, comme identifié dans l'Activité 3."
+        "le plus déterminant dans les décisions du modèle."
     )
 
 
