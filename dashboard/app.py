@@ -257,23 +257,43 @@ with tab_simulateur:
     st.subheader("Simuler une nouvelle demande de prêt")
     st.write("Remplis le formulaire ci-dessous pour obtenir une décision instantanée du modèle.")
 
+    # Les valeurs brutes du jeu de données sont en anglais (Male, Yes, Urban...) car
+    # c'est ce que le modèle attend. On affiche des libellés français à l'utilisateur
+    # via `format_func`, tout en gardant la vraie valeur anglaise en interne.
+    GENDER_LABELS = {"Male": "Homme", "Female": "Femme"}
+    YES_NO_LABELS = {"Yes": "Oui", "No": "Non"}
+    EDUCATION_LABELS = {"Graduate": "Diplômé", "Not Graduate": "Non diplômé"}
+    PROPERTY_AREA_LABELS = {"Urban": "Urbaine", "Semiurban": "Semi-urbaine", "Rural": "Rurale"}
+    TERM_LABELS = {
+        360.0: "30 ans (360 mois)", 300.0: "25 ans (300 mois)", 240.0: "20 ans (240 mois)",
+        180.0: "15 ans (180 mois)", 120.0: "10 ans (120 mois)", 84.0: "7 ans (84 mois)",
+        60.0: "5 ans (60 mois)", 36.0: "3 ans (36 mois)", 12.0: "1 an (12 mois)",
+        6.0: "6 mois", 480.0: "40 ans (480 mois)",
+    }
+
     with st.form("loan_form"):
         c1, c2, c3 = st.columns(3)
 
         with c1:
-            gender = st.selectbox("Genre", ["Male", "Female"])
-            married = st.selectbox("Marié(e)", ["Yes", "No"])
+            gender = st.selectbox("Genre", list(GENDER_LABELS), format_func=lambda v: GENDER_LABELS[v])
+            married = st.selectbox("Marié(e)", list(YES_NO_LABELS), format_func=lambda v: YES_NO_LABELS[v])
             dependents = st.selectbox("Nombre de personnes à charge", ["0", "1", "2", "3+"])
-            education = st.selectbox("Niveau d'études", ["Graduate", "Not Graduate"])
+            education = st.selectbox(
+                "Niveau d'études", list(EDUCATION_LABELS), format_func=lambda v: EDUCATION_LABELS[v]
+            )
 
         with c2:
-            self_employed = st.selectbox("Indépendant", ["Yes", "No"])
-            property_area = st.selectbox("Zone géographique", ["Urban", "Semiurban", "Rural"])
+            self_employed = st.selectbox(
+                "Indépendant", list(YES_NO_LABELS), format_func=lambda v: YES_NO_LABELS[v]
+            )
+            property_area = st.selectbox(
+                "Zone géographique", list(PROPERTY_AREA_LABELS), format_func=lambda v: PROPERTY_AREA_LABELS[v]
+            )
             credit_history = st.selectbox(
                 "A déjà bien remboursé un crédit par le passé ?", ["Oui", "Non"]
             )
             loan_amount_term = st.selectbox(
-                "Durée du prêt (mois)", [360.0, 180.0, 480.0, 300.0, 240.0, 120.0, 84.0, 60.0, 36.0, 12.0, 6.0]
+                "Durée du prêt", list(TERM_LABELS), format_func=lambda v: TERM_LABELS[v]
             )
 
         with c3:
@@ -285,6 +305,7 @@ with tab_simulateur:
 
     if submitted:
         # Construire une ligne avec les mêmes colonnes que celles utilisées à l'entraînement
+        # (les valeurs restent en anglais ici : ce sont celles que le modèle connaît)
         new_request = pd.DataFrame([{
             "Gender": gender,
             "Married": married,
