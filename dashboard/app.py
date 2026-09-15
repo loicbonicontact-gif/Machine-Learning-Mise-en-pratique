@@ -9,6 +9,8 @@
 # sont du SVG (Heroicons, licence MIT), pas des emojis, pour un rendu pro
 # cohérent sur toutes les plateformes.
 
+from pathlib import Path
+
 import joblib
 import pandas as pd
 import plotly.express as px
@@ -16,6 +18,13 @@ import plotly.graph_objects as go
 import streamlit as st
 
 st.set_page_config(page_title="CrediTrust Scoring", page_icon="💳", layout="wide")
+
+# Chemins construits à partir de l'emplacement de ce fichier (et non du dossier
+# courant) : ça fonctionne aussi bien en local que sur Streamlit Community
+# Cloud, où l'app est lancée depuis la racine du dépôt.
+BASE_DIR = Path(__file__).resolve().parent
+DATA_PATH = BASE_DIR.parent / "data" / "loan_data.csv"
+MODELS_DIR = BASE_DIR / "models"
 
 # --- Palette (issue du design system fintech / dashboard) ---
 COLOR_PRIMARY = "#1E40AF"     # bleu marine — couleur principale
@@ -93,15 +102,15 @@ st.markdown(
 # --- Chargement des données et du modèle (mis en cache pour ne pas recharger à chaque clic) ---
 @st.cache_data
 def load_data():
-    df = pd.read_csv("../data/loan_data.csv")
+    df = pd.read_csv(DATA_PATH)
     return df.dropna(subset=["Loan_Status"]).drop(columns=["Loan_ID"]).reset_index(drop=True)
 
 
 @st.cache_resource
 def load_model_artifacts():
-    model = joblib.load("models/model.joblib")
-    scaler = joblib.load("models/scaler.joblib")
-    prep = joblib.load("models/preprocessing.joblib")
+    model = joblib.load(MODELS_DIR / "model.joblib")
+    scaler = joblib.load(MODELS_DIR / "scaler.joblib")
+    prep = joblib.load(MODELS_DIR / "preprocessing.joblib")
     return model, scaler, prep
 
 
