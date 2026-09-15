@@ -68,15 +68,19 @@
   modèle, `StandardScaler` fit/transform, dictionnaires prédictions/métriques)
   — pas de `Pipeline`/`ColumnTransformer` (jamais vu avant, retiré après
   relecture de Loïc).
-- Exécuté de bout en bout (`jupyter nbconvert --execute`) : 36 cellules de
+- Sur demande de Loïc : les 5 modèles sont entraînés et comparés, mais seuls
+  les **3 meilleurs sur le rappel** sont gardés pour l'analyse détaillée
+  (matrices de confusion, interprétabilité) et le choix du modèle optimal —
+  au lieu d'analyser les 5. Les 3 retenus : Arbre de Décision, Random
+  Forest, Régression Logistique (KNN et SVM écartés, rappel plus faible).
+- Exécuté de bout en bout (`jupyter nbconvert --execute`) : 35 cellules de
   code, 0 erreur. Meilleur rappel sur la classe risque : Arbre de Décision
-  (rappel 0.53, accuracy 0.65) ; Régression Logistique/SVM plus précis mais
-  moins de rappel.
+  (rappel 0.53, accuracy 0.65).
 - Fichier de travail : dossier local `Modélisation - CrediTrust Scoring/`
   (ignoré par git, comme les modules précédents). Copié vers
   `notebooks/nb_03_Modélisation_CrediTrust_Scoring.ipynb` à la racine
-  (suivi par git) et commité (2 commits : ajout initial + réécriture avec les
-  techniques nb_01/nb_02).
+  (suivi par git) et commité (3 commits : ajout initial, réécriture avec les
+  techniques nb_01/nb_02, puis sélection top 3 modèles).
 - ⚠️ Demande de réorganisation du dossier (fusionner/supprimer les anciens
   dossiers de module 1 et 2) mise de côté pour l'instant à la demande de
   Loïc : on ne touche pas à `notebooks/nb_01` ni `nb_02` tant que ce n'est
