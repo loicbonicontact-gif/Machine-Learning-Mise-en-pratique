@@ -3,6 +3,11 @@
 #   1. Analyse de données : graphiques interactifs et KPIs sur loan_data.csv.
 #   2. Simulateur : formulaire connecté au modèle entraîné (train_model.py)
 #      pour accorder ou refuser un prêt en temps réel, avec probabilité.
+#
+# Design : palette et bonnes pratiques générées via le skill ui-ux-pro-max
+# (style "Data-Dense Dashboard", palette fintech bleu marine). Les icônes
+# sont du SVG (Heroicons, licence MIT), pas des emojis, pour un rendu pro
+# cohérent sur toutes les plateformes.
 
 import joblib
 import pandas as pd
@@ -12,9 +17,77 @@ import streamlit as st
 
 st.set_page_config(page_title="CrediTrust Scoring", page_icon="💳", layout="wide")
 
-COLOR_SUR = "#16A34A"   # vert : dossier sûr
-COLOR_RISQUE = "#DC2626"  # rouge : dossier risqué
-COLOR_PRIMARY = "#2563EB"  # bleu : couleur principale du thème
+# --- Palette (issue du design system fintech / dashboard) ---
+COLOR_PRIMARY = "#1E40AF"     # bleu marine — couleur principale
+COLOR_SECONDARY = "#3B82F6"   # bleu clair
+COLOR_ACCENT = "#D97706"      # ambre — accent
+COLOR_BACKGROUND = "#F8FAFC"
+COLOR_MUTED = "#E9EEF6"
+COLOR_BORDER = "#DBEAFE"
+COLOR_SUR = "#15803D"         # vert foncé — dossier sûr (contraste AA sur fond clair)
+COLOR_SUR_BG = "#DCFCE7"
+COLOR_RISQUE = "#DC2626"      # rouge — dossier risqué
+COLOR_RISQUE_BG = "#FEE2E2"
+
+
+# --- Icônes SVG (Heroicons outline, 24x24, licence MIT) ---
+ICONS = {
+    "credit-card": '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3M3.75 6h16.5a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5H3.75a1.5 1.5 0 0 1-1.5-1.5v-9a1.5 1.5 0 0 1 1.5-1.5Z" />',
+    "folder": '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-19.5 0v6a2.25 2.25 0 0 0 2.25 2.25h15a2.25 2.25 0 0 0 2.25-2.25v-6m-19.5 0a2.25 2.25 0 0 1 2.25-2.25h15a2.25 2.25 0 0 1 2.25 2.25m-19.5 0v-.75A2.25 2.25 0 0 1 4.5 7.5h4.379a1.5 1.5 0 0 1 1.06.44l1.122 1.12a1.5 1.5 0 0 0 1.06.44H19.5a2.25 2.25 0 0 1 2.25 2.25v.75" />',
+    "x-circle": '<path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />',
+    "banknotes": '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />',
+    "target": '<path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M12 13.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />',
+    "check-circle": '<path stroke-linecap="round" stroke-linejoin="round" d="m9 12.75 2.25 2.25 4.5-4.5m5.25 2.25a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />',
+    "chart-bar": '<path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />',
+}
+
+
+def icon(name: str, size: int = 20, color: str = "currentColor") -> str:
+    """Retourne le HTML d'une icône SVG inline (pas d'emoji)."""
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" '
+        f'viewBox="0 0 24 24" fill="none" stroke="{color}" stroke-width="1.5" '
+        f'style="vertical-align:-4px;flex-shrink:0">{ICONS[name]}</svg>'
+    )
+
+
+def kpi_card(icon_name: str, label: str, value: str) -> str:
+    """Carte KPI en HTML : n'écrase jamais le texte (contrairement à st.metric)."""
+    return f"""
+    <div style="background:{COLOR_MUTED};border:1px solid {COLOR_BORDER};border-radius:10px;
+                padding:14px 16px;height:100%;">
+      <div style="display:flex;align-items:center;gap:8px;color:{COLOR_PRIMARY};
+                  font-size:0.82rem;font-weight:600;margin-bottom:6px;">
+        {icon(icon_name, 18, COLOR_PRIMARY)}<span>{label}</span>
+      </div>
+      <div style="font-size:1.5rem;font-weight:700;color:#0F172A;line-height:1.25;
+                  word-wrap:break-word;">{value}</div>
+    </div>
+    """
+
+
+def verdict_badge(is_risky: bool) -> str:
+    bg, fg, icon_name, text = (
+        (COLOR_RISQUE_BG, COLOR_RISQUE, "x-circle", "Demande jugée risquée")
+        if is_risky
+        else (COLOR_SUR_BG, COLOR_SUR, "check-circle", "Demande jugée sûre")
+    )
+    return f"""
+    <div style="background:{bg};color:{fg};border-radius:10px;padding:14px 16px;
+                display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1rem;">
+      {icon(icon_name, 24, fg)}<span>{text}</span>
+    </div>
+    """
+
+
+st.markdown(
+    f"""
+    <style>
+      .stApp {{ background-color: {COLOR_BACKGROUND}; }}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 
 # --- Chargement des données et du modèle (mis en cache pour ne pas recharger à chaque clic) ---
@@ -40,8 +113,16 @@ model, scaler, prep = load_model_artifacts()
 # Barre latérale : présentation du projet
 # ============================================================
 with st.sidebar:
-    st.markdown("## 💳 CrediTrust")
-    st.caption("Scoring de risque crédit")
+    st.markdown(
+        f"""
+        <div style="display:flex;align-items:center;gap:8px;">
+          {icon("credit-card", 26, COLOR_PRIMARY)}
+          <span style="font-size:1.4rem;font-weight:700;color:{COLOR_PRIMARY}">CrediTrust</span>
+        </div>
+        <div style="color:#64748B;margin-top:2px;">Scoring de risque crédit</div>
+        """,
+        unsafe_allow_html=True,
+    )
     st.divider()
     st.markdown(
         """
@@ -52,8 +133,24 @@ with st.sidebar:
         décisions de CrediTrust.
         """
     )
-    st.metric("Modèle utilisé", "Arbre de Décision")
-    st.metric("Rappel sur la classe risque", f"{prep['test_recall'] * 100:.1f} %")
+
+    # Cartes en HTML (pas st.metric) : le texte "Arbre de Décision" ne se
+    # tronque jamais, même dans la barre latérale, étroite.
+    st.markdown(
+        f"""
+        <div style="background:{COLOR_MUTED};border:1px solid {COLOR_BORDER};
+                    border-radius:10px;padding:12px 14px;margin-bottom:10px;">
+          <div style="font-size:0.8rem;color:{COLOR_PRIMARY};font-weight:600;">Modèle utilisé</div>
+          <div style="font-size:1.1rem;font-weight:700;color:#0F172A;">Arbre de Décision</div>
+        </div>
+        <div style="background:{COLOR_MUTED};border:1px solid {COLOR_BORDER};
+                    border-radius:10px;padding:12px 14px;">
+          <div style="font-size:0.8rem;color:{COLOR_PRIMARY};font-weight:600;">Rappel sur la classe risque</div>
+          <div style="font-size:1.1rem;font-weight:700;color:#0F172A;">{prep['test_recall'] * 100:.1f} %</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     st.caption(
         "Le rappel mesure la capacité du modèle à détecter les dossiers "
         "réellement risqués — la priorité métier pour CrediTrust."
@@ -62,10 +159,18 @@ with st.sidebar:
     st.caption("Projet Machine Learning — Activité 4 (Dashboard Streamlit)")
 
 
-st.title("💳 CrediTrust Scoring")
+st.markdown(
+    f"""
+    <div style="display:flex;align-items:center;gap:10px;">
+      {icon("credit-card", 32, COLOR_PRIMARY)}
+      <span style="font-size:2rem;font-weight:700;color:#0F172A;">CrediTrust Scoring</span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 st.caption("Outil d'aide à la décision pour l'octroi de prêts, basé sur le modèle de l'Activité 3.")
 
-tab_analyse, tab_simulateur = st.tabs(["📊 Analyse de données", "🧮 Simulateur de demande"])
+tab_analyse, tab_simulateur = st.tabs(["Analyse de données", "Simulateur de demande"])
 
 
 # ============================================================
@@ -79,10 +184,10 @@ with tab_analyse:
     revenu_median = df["ApplicantIncome"].median()
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("📁 Dossiers analysés", f"{n_dossiers:,}")
-    col2.metric("🚫 Taux de refus", f"{taux_refus:.1f} %")
-    col3.metric("💰 Revenu médian", f"{revenu_median:,.0f}")
-    col4.metric("🎯 Rappel du modèle", f"{prep['test_recall'] * 100:.1f} %")
+    col1.markdown(kpi_card("folder", "Dossiers analysés", f"{n_dossiers:,}"), unsafe_allow_html=True)
+    col2.markdown(kpi_card("x-circle", "Taux de refus", f"{taux_refus:.1f} %"), unsafe_allow_html=True)
+    col3.markdown(kpi_card("banknotes", "Revenu médian", f"{revenu_median:,.0f}"), unsafe_allow_html=True)
+    col4.markdown(kpi_card("target", "Rappel du modèle", f"{prep['test_recall'] * 100:.1f} %"), unsafe_allow_html=True)
 
     st.divider()
 
@@ -202,11 +307,12 @@ with tab_simulateur:
         col_result, col_gauge = st.columns([1, 1])
 
         with col_result:
-            if prediction == 1:
-                st.error("❌ Demande jugée **risquée**")
-            else:
-                st.success("✅ Demande jugée **sûre**")
-            st.metric("Probabilité de risque estimée", f"{proba_risque:.1f} %")
+            st.markdown(verdict_badge(is_risky=(prediction == 1)), unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown(
+                kpi_card("target", "Probabilité de risque estimée", f"{proba_risque:.1f} %"),
+                unsafe_allow_html=True,
+            )
             st.caption(
                 "Rappel : ce modèle reproduit les critères d'une décision historique "
                 "(accordé/refusé), pas un vrai indicateur de défaut de paiement constaté."
@@ -222,8 +328,8 @@ with tab_simulateur:
                     "axis": {"range": [0, 100]},
                     "bar": {"color": gauge_color},
                     "steps": [
-                        {"range": [0, 50], "color": "#DCFCE7"},
-                        {"range": [50, 100], "color": "#FEE2E2"},
+                        {"range": [0, 50], "color": COLOR_SUR_BG},
+                        {"range": [50, 100], "color": COLOR_RISQUE_BG},
                     ],
                 },
             ))
