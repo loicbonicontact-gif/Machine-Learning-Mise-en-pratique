@@ -164,8 +164,6 @@ with st.sidebar:
         "Le rappel mesure la capacité du modèle à détecter les dossiers "
         "réellement risqués — la priorité métier pour CrediTrust."
     )
-    st.divider()
-    st.caption("Projet Machine Learning — Activité 4 (Dashboard Streamlit)")
 
 
 st.markdown(
