@@ -50,33 +50,41 @@
   ni commité/poussé.
 
 ## Où on en est (suite 5, 2026-09-15)
-- Activité 3 (projet CrediTrust Scoring) réalisée : nouveau notebook
-  `nb_03_Modélisation_CrediTrust_Scoring.ipynb`, basé sur `data/loan_data.csv`.
+- Activité 3 (projet CrediTrust Scoring) réalisée et **validée par Loïc** :
+  nouveau notebook `nb_03_Modélisation_CrediTrust_Scoring.ipynb`, basé sur
+  `data/loan_data.csv`.
   Contenu : EDA (facteurs de risque, `Credit_History` ressort comme facteur
   dominant), prétraitement sans fuite de données (split train/test avant
-  imputation/encodage/scaling, pipelines scikit-learn), entraînement de
-  5 modèles de classification binaire (Logistique, Arbre de Décision,
-  Random Forest, KNN, SVM linéaire), cible encodée comme "risque"
-  (1 = prêt refusé) pour que le rappel corresponde bien à la réduction des
-  Faux Négatifs métier, comparaison des modèles avec priorité au rappel,
-  interprétation (coefficients de la régression logistique + importances
-  de la random forest).
-- Exécuté de bout en bout (`jupyter nbconvert --execute`) : 18 cellules de
+  imputation/encodage/scaling), entraînement de 5 modèles de classification
+  binaire (Logistique, Arbre de Décision, Random Forest, KNN, SVM linéaire),
+  cible encodée comme "risque" (1 = prêt refusé, seul proxy disponible dans
+  ce jeu de données car il n'y a pas de vraie colonne "défaut de paiement")
+  pour que le rappel corresponde bien à la réduction des Faux Négatifs
+  métier, comparaison des modèles avec priorité au rappel, interprétation
+  (coefficients de la régression logistique + importances de l'arbre et de
+  la random forest).
+- Techniques volontairement limitées à celles déjà vues dans nb_01
+  (`pd.get_dummies`, `fillna` médiane/mode) et nb_02 (entraînement modèle par
+  modèle, `StandardScaler` fit/transform, dictionnaires prédictions/métriques)
+  — pas de `Pipeline`/`ColumnTransformer` (jamais vu avant, retiré après
+  relecture de Loïc).
+- Exécuté de bout en bout (`jupyter nbconvert --execute`) : 36 cellules de
   code, 0 erreur. Meilleur rappel sur la classe risque : Arbre de Décision
-  (rappel 0.53, accuracy 0.66) ; Régression Logistique/SVM plus précis mais
+  (rappel 0.53, accuracy 0.65) ; Régression Logistique/SVM plus précis mais
   moins de rappel.
 - Fichier de travail : dossier local `Modélisation - CrediTrust Scoring/`
   (ignoré par git, comme les modules précédents). Copié vers
   `notebooks/nb_03_Modélisation_CrediTrust_Scoring.ipynb` à la racine
-  (suivi par git).
+  (suivi par git) et commité (2 commits : ajout initial + réécriture avec les
+  techniques nb_01/nb_02).
 - ⚠️ Demande de réorganisation du dossier (fusionner/supprimer les anciens
   dossiers de module 1 et 2) mise de côté pour l'instant à la demande de
   Loïc : on ne touche pas à `notebooks/nb_01` ni `nb_02` tant que ce n'est
   pas redemandé explicitement.
 
 ## Reste à faire
-- Commiter `nb_03` (racine `notebooks/`), `.gitignore` et cette mise à jour
-  de `PROGRESS.md`. Demander avant de pousser sur GitHub (`git push`).
+- `nb_03` est commité localement mais **pas encore poussé** sur GitHub —
+  demander confirmation avant `git push`.
 - Copier le nb_02 complété avec réponses (dossier local) vers `notebooks/`
   à la racine, commiter et pousser (si Loïc le souhaite un jour).
 - Vérifier sur GitHub que le notebook nb_01 affiche bien le bon contenu.
