@@ -145,3 +145,23 @@
   pause pour l'instant, voir ci-dessus).
 - Décider quoi faire de `Aide_Memoire_Machine_Learning.html` (non suivi
   par git actuellement).
+
+## Où on en est (suite 8, 2026-09-16)
+- Vérification de l'organisation du dossier : structure conforme aux
+  décisions déjà prises (racine = `notebooks/`, `data/`, `assets/`,
+  `dashboard/`, `README.md` ; anciens dossiers par module gardés en local,
+  ignorés par git). Le dossier local `Dashboard CrediTrust Scoring/`
+  (ignoré) est identique à `dashboard/` (suivi), donc pas de divergence de
+  contenu.
+- `Aide_Memoire_Machine_Learning.html` ajouté au `.gitignore` (décision de
+  Loïc : fichier personnel, pas lié au repo GitHub).
+- Modification mineure de métadonnée (nom du kernel Jupyter) sur
+  `notebooks/nb_03_Modélisation_CrediTrust_Scoring.ipynb` commitée (sans
+  impact sur le contenu, sur demande de Loïc).
+
+## Reste à faire (mis à jour)
+- Connecter le dépôt GitHub à Streamlit Community Cloud (à faire par Loïc).
+- Copier le nb_02 complété avec réponses (dossier local) vers `notebooks/`
+  à la racine, commiter et pousser (si Loïc le souhaite un jour).
+- Décider si on supprime un jour les anciens dossiers de module (mis en
+  pause, voir ci-dessus).
