@@ -174,6 +174,25 @@
   - Racine du projet maintenant : `notebooks/`, `data/`, `assets/`,
     `dashboard/`, `archive/` (local, ignoré), `README.md`, `PROGRESS.md`.
 
+## Où on en est (suite 10, 2026-09-16)
+- Sur demande de Loïc : ajout d'une cellule d'observation après l'entraînement
+  de chacun des 5 modèles de `nb_03` (section 4). Après chaque `.fit()`, une
+  cellule de code calcule le score (accuracy) sur le jeu d'entraînement, puis
+  une cellule markdown compare ce score à l'accuracy test (calculée plus loin,
+  section 5) pour repérer le sur-apprentissage.
+  - KNN : train 81 % vs test 71 % — écart net, cohérent avec son
+    fonctionnement (mémorisation des points, pas de vraie généralisation).
+  - Régression Logistique : train 81,3 % vs test 81,3 % — pas d'écart, bonne
+    généralisation (frontière linéaire simple).
+  - SVM linéaire : train 80,9 % vs test 81,3 % — idem, pas de sur-apprentissage.
+  - Arbre de Décision : train 100 % vs test 65 % — sur-apprentissage flagrant
+    (arbre non limité en profondeur, mémorise le train).
+  - Random Forest : train 100 % vs test 78 % — sur-apprentissage aussi, mais
+    atténué par le moyennage de plusieurs arbres.
+  - Notebook réexécuté de bout en bout (`jupyter nbconvert --execute`) :
+    60 cellules, 0 erreur. Commité et poussé. Copie locale dans
+    `archive/Modélisation - CrediTrust Scoring/` resynchronisée.
+
 ## Reste à faire (mis à jour)
 - Connecter le dépôt GitHub à Streamlit Community Cloud (à faire par Loïc).
 - Vérifier sur GitHub que le notebook nb_01 affiche bien le bon contenu.
