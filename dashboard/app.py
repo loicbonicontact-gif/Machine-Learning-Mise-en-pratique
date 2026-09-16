@@ -77,9 +77,9 @@ def kpi_card(icon_name: str, label: str, value: str) -> str:
 
 def verdict_badge(is_risky: bool) -> str:
     bg, fg, icon_name, text = (
-        (COLOR_RISQUE_BG, COLOR_RISQUE, "x-circle", "Demande jugée risquée")
+        (COLOR_RISQUE_BG, COLOR_RISQUE, "x-circle", "Prêt refusé")
         if is_risky
-        else (COLOR_SUR_BG, COLOR_SUR, "check-circle", "Demande jugée sûre")
+        else (COLOR_SUR_BG, COLOR_SUR, "check-circle", "Prêt accordé")
     )
     return f"""
     <div style="background:{bg};color:{fg};border-radius:10px;padding:14px 16px;
@@ -342,10 +342,11 @@ with tab_simulateur:
                 kpi_card("target", "Chance de risque estimée", f"{proba_risque:.1f} %"),
                 unsafe_allow_html=True,
             )
+            decision_text = "refusé" if prediction == 1 else "accordé"
             st.caption(
                 f"Selon le modèle utilisé (Random Forest (max_depth=7), {prep['test_recall'] * 100:.1f} % "
                 f"de rappel sur la classe risque — la priorité de CrediTrust pour détecter les "
-                f"mauvais payeurs), le crédit pourra ou non être accordé, avec une chance de "
+                f"mauvais payeurs), ce prêt serait {decision_text}, avec une chance de "
                 f"risque estimée à {proba_risque:.1f} %. Pour rappel : ce modèle reproduit les "
                 f"critères d'une décision historique (accordé/refusé), pas un vrai indicateur de "
                 f"défaut de paiement constaté."
