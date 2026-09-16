@@ -1,11 +1,8 @@
 .DS_Store
 .ipynb_checkpoints/
 
-# Anciens dossiers par module, conserves temporairement en local (contenu fusionne dans notebooks/ et data/)
-/Introduction au Machine Learning et Prétraitement des Données/
-/Apprentissage Supervisé - Classification/
-/Modélisation - CrediTrust Scoring/
-/Dashboard CrediTrust Scoring/
+# Anciens dossiers par module, archives locales (contenu fusionné dans notebooks/, data/, dashboard/)
+/archive/
 
 # Aide-mémoire personnel, non lié au projet suivi sur GitHub
 /Aide_Memoire_Machine_Learning.html
