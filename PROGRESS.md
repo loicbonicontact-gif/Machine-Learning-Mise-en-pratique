@@ -224,6 +224,79 @@
   formulaire) : aucune exception.
 - ⚠️ Pas encore commité/poussé (à faire si Loïc valide le résultat en local).
 
+## Où on en est (suite 12, 2026-09-16)
+- Loïc a partagé le brief officiel du projet client CrediTrust Finance. En le
+  comparant à nos changements, on a trouvé un problème : le brief demande
+  explicitement de **minimiser les Faux Négatifs** (mauvais payeurs non
+  détectés), ce qui veut dire prioriser le **rappel**, pas la précision. Le
+  choix du SVM linéaire (suite 11, sur demande de Loïc) allait donc à
+  l'encontre de la consigne.
+- Discuté avec Loïc : il ne veut pas d'un modèle qui sur-apprend (donc
+  Arbre de Décision et Random Forest écartés, malgré leur meilleur rappel,
+  car 100 % en train). Parmi les modèles restants (Régression Logistique,
+  SVM linéaire, KNN), Loïc a choisi la **Régression Logistique**
+  (recommandation) : meilleur rappel (0.474) des modèles sans
+  sur-apprentissage, bonne précision (0.857), accuracy 0.813.
+- `dashboard/train_model.py` et `dashboard/app.py` remis à jour pour la
+  Régression Logistique (au lieu du SVM) : libellés "Rappel"/"Régression
+  Logistique", modèle réentraîné et sauvegardé dans `models/`. Message du
+  simulateur reformulé pour mentionner le rappel (priorité métier) tout en
+  gardant le langage "chance de risque" demandé par Loïc. Testé avec
+  `streamlit.testing.v1.AppTest` : aucune exception.
+- Création de `EXPLICATIONS_PROJET.md` (racine du repo) : résumé pédagogique
+  simple des 4 attendus du brief (EDA, déséquilibre des classes/prétraitement,
+  comparaison de modèles avec tableau des métriques, dashboard), avec les
+  raisons des choix faits et une section "Limites connues" honnête
+  (déséquilibre des classes non traité activement, rappel encore modéré à
+  47,4 %, cible = proxy "prêt refusé" et non un vrai défaut de paiement).
+
+## Où on en est (suite 13, 2026-09-16)
+- Sur demande de Loïc : essayé de limiter le sur-apprentissage de l'Arbre de
+  Décision et de la Random Forest avec `max_depth`, et testé
+  `class_weight="balanced"` pour traiter le déséquilibre des classes (31 %
+  de refus) — objectif : plus jamais de probabilité bloquée à 0 %/100 %.
+- Nouvelle **section 8** ajoutée dans `nb_03` ("Aller plus loin : limiter la
+  profondeur et traiter le déséquilibre des classes") :
+  - Boucle sur `max_depth` (2 à 10, + aucune limite) pour l'Arbre de
+    Décision et la Random Forest, tableau comparatif accuracy train/test +
+    précision + rappel à chaque profondeur.
+  - `max_depth=7` pour la Random Forest ressort comme le meilleur
+    compromis : accuracy test 82,1 % (la meilleure de tous les modèles
+    essayés), précision 86,4 % (la meilleure aussi), rappel 50,0 % (aussi
+    bon que l'Arbre de Décision d'origine), écart train/test réduit à ~4
+    points (au lieu de 22 points sans limite de profondeur, 35 points pour
+    l'Arbre de Décision seul).
+  - `class_weight="balanced"` testé sur Régression Logistique, Arbre de
+    Décision, Random Forest, SVM : améliore un peu le rappel (ex. Random
+    Forest depth=7 : 0,50 → 0,55) mais dégrade nettement la précision et
+    l'accuracy (0,86 → 0,64 et 0,82 → 0,76), et augmente parfois le
+    sur-apprentissage. **Pas retenu** pour le modèle final — documenté
+    comme piste explorée mais écartée.
+  - Vérifié que les probabilités prédites par la Random Forest
+    (`max_depth=7`) ne sont plus bloquées à 0 %/100 % : distribution
+    étalée entre 7 % et 85 % sur le jeu de test (histogramme ajouté),
+    contrairement à l'Arbre de Décision seul qui ne peut prédire que des
+    probabilités quasi pures (chaque feuille contient un seul type de
+    client).
+  - Conclusion du notebook (partie 9, ex-partie 7) mise à jour pour refléter
+    ce nouveau modèle final.
+  - Une cellule cassée trouvée dans nb_03 lors d'une session précédente
+    (`classification_report` sur des variables pas encore définies à cet
+    endroit, gardée telle quelle sur demande de Loïc) bloquait l'exécution
+    complète du notebook — supprimée avec l'accord de Loïc (faisait
+    doublon avec la partie 5 qui fait déjà ce calcul proprement).
+  - Notebook réexécuté de bout en bout (`jupyter nbconvert --execute`) :
+    0 erreur, 81 cellules.
+- `dashboard/train_model.py` et `dashboard/app.py` mis à jour pour utiliser
+  Random Forest (`max_depth=7`) au lieu de la Régression Logistique.
+  Réentraîné, testé avec `streamlit.testing.v1.AppTest` (chargement +
+  soumission du formulaire) : aucune exception. Vérifié manuellement que
+  deux profils différents donnent des probabilités non saturées (19,3 % et
+  80,8 %).
+- `EXPLICATIONS_PROJET.md` mis à jour avec le nouveau modèle final et les
+  résultats de l'exploration `max_depth`/`class_weight`.
+- ⚠️ Pas encore commité/poussé (à faire si Loïc valide le résultat en local).
+
 ## Reste à faire (mis à jour)
 - Loïc valide le dashboard en local (`streamlit run dashboard/app.py`) avant
   commit/push.

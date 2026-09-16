@@ -5,10 +5,10 @@
 
 import joblib
 import pandas as pd
-from sklearn.metrics import precision_score
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
 
 NUMERIC_COLS = ["ApplicantIncome", "CoapplicantIncome", "LoanAmount", "Loan_Amount_Term"]
 CATEGORICAL_COLS = ["Gender", "Married", "Dependents", "Education", "Self_Employed", "Property_Area"]
@@ -56,17 +56,25 @@ X_test_scaled = X_test_encoded.copy()
 X_train_scaled[NUMERIC_COLS] = scaler.fit_transform(X_train_encoded[NUMERIC_COLS])
 X_test_scaled[NUMERIC_COLS] = scaler.transform(X_test_encoded[NUMERIC_COLS])
 
-# --- 6. Entraînement du modèle retenu dans nb_03 : le SVM (linéaire) ---
-# (choisi car meilleure précision sur la classe "risque" parmi les 5 modèles
-# comparés dans l'activité 3 : 0.895, devant Régression Logistique 0.857)
-# probability=True est ajouté (absent de nb_03) car l'app a besoin de
-# predict_proba pour afficher un pourcentage de risque, pas seulement une
-# décision accordé/refusé.
-model = SVC(kernel="linear", probability=True, random_state=42)
+# --- 6. Entraînement du modèle retenu dans nb_03 (partie 8) : Random Forest, max_depth=7 ---
+# (le brief du projet demande de prioriser le rappel, pour minimiser les Faux
+# Négatifs = mauvais payeurs non détectés. L'Arbre de Décision et la Random
+# Forest sans limite de profondeur avaient le meilleur rappel brut mais
+# sur-apprenaient fortement (100 % en train). En testant plusieurs valeurs de
+# max_depth, la Random Forest avec max_depth=7 ressort comme le meilleur
+# compromis : rappel 0.500 (aussi bon que l'Arbre de Décision d'origine),
+# meilleure accuracy (0.821) et précision (0.864) de tous les modèles
+# essayés, et un écart train/test limité à ~4 points au lieu de 22.
+# class_weight="balanced" a aussi été testé pour traiter le déséquilibre des
+# classes (31 % de refus) : ça améliore un peu le rappel mais dégrade
+# nettement la précision et l'accuracy, donc pas retenu.)
+model = RandomForestClassifier(max_depth=7, random_state=42)
 model.fit(X_train_scaled, y_train)
 
 y_pred = model.predict(X_test_scaled)
+test_recall = recall_score(y_test, y_pred, pos_label=1)
 test_precision = precision_score(y_test, y_pred, pos_label=1)
+print(f"Rappel sur la classe risque (jeu de test) : {test_recall:.3f}")
 print(f"Précision sur la classe risque (jeu de test) : {test_precision:.3f}")
 
 # --- 7. Sauvegarde du modèle et de tout le nécessaire pour reproduire le prétraitement ---
@@ -80,6 +88,7 @@ joblib.dump(
         "credit_history_mode": credit_history_mode,
         "categorical_modes": categorical_modes,
         "encoded_columns": encoded_columns,
+        "test_recall": test_recall,
         "test_precision": test_precision,
     },
     "models/preprocessing.joblib",
