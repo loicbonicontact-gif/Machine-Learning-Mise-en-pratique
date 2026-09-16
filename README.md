@@ -34,6 +34,17 @@ d'accorder ou refuser un prêt. À partir de `data/loan_data.csv` :
 Détails complets et justification des choix : voir
 [`EXPLICATIONS_PROJET.md`](EXPLICATIONS_PROJET.md).
 
+Dashboard en ligne : **https://creditrust.streamlit.app**
+
+<p align="center">
+  <img src="assets/dashboard/analyse_donnees.png" width="90%" alt="Onglet Analyse de données">
+</p>
+
+<p align="center">
+  <img src="assets/dashboard/simulateur_formulaire.png" width="45%" alt="Formulaire du simulateur">
+  <img src="assets/dashboard/simulateur_resultat.png" width="45%" alt="Résultat du simulateur">
+</p>
+
 ## Lancer le dashboard en local
 
 ```bash
