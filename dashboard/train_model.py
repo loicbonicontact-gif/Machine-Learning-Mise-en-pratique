@@ -5,12 +5,10 @@
 
 import joblib
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import recall_score
+from sklearn.metrics import precision_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import SVC
 
 NUMERIC_COLS = ["ApplicantIncome", "CoapplicantIncome", "LoanAmount", "Loan_Amount_Term"]
 CATEGORICAL_COLS = ["Gender", "Married", "Dependents", "Education", "Self_Employed", "Property_Area"]
@@ -58,15 +56,18 @@ X_test_scaled = X_test_encoded.copy()
 X_train_scaled[NUMERIC_COLS] = scaler.fit_transform(X_train_encoded[NUMERIC_COLS])
 X_test_scaled[NUMERIC_COLS] = scaler.transform(X_test_encoded[NUMERIC_COLS])
 
-# --- 6. Entraînement du modèle retenu dans nb_03 : l'Arbre de Décision ---
-# (choisi car meilleur rappel sur la classe "risque" parmi les 3 modèles retenus
-# dans l'activité 3 : Arbre de Décision, Random Forest, Régression Logistique)
-model = DecisionTreeClassifier(random_state=42)
+# --- 6. Entraînement du modèle retenu dans nb_03 : le SVM (linéaire) ---
+# (choisi car meilleure précision sur la classe "risque" parmi les 5 modèles
+# comparés dans l'activité 3 : 0.895, devant Régression Logistique 0.857)
+# probability=True est ajouté (absent de nb_03) car l'app a besoin de
+# predict_proba pour afficher un pourcentage de risque, pas seulement une
+# décision accordé/refusé.
+model = SVC(kernel="linear", probability=True, random_state=42)
 model.fit(X_train_scaled, y_train)
 
 y_pred = model.predict(X_test_scaled)
-test_recall = recall_score(y_test, y_pred, pos_label=1)
-print(f"Rappel sur la classe risque (jeu de test) : {test_recall:.3f}")
+test_precision = precision_score(y_test, y_pred, pos_label=1)
+print(f"Précision sur la classe risque (jeu de test) : {test_precision:.3f}")
 
 # --- 7. Sauvegarde du modèle et de tout le nécessaire pour reproduire le prétraitement ---
 joblib.dump(model, "models/model.joblib")
@@ -79,7 +80,7 @@ joblib.dump(
         "credit_history_mode": credit_history_mode,
         "categorical_modes": categorical_modes,
         "encoded_columns": encoded_columns,
-        "test_recall": test_recall,
+        "test_precision": test_precision,
     },
     "models/preprocessing.joblib",
 )

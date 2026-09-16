@@ -143,26 +143,26 @@ with st.sidebar:
         """
     )
 
-    # Cartes en HTML (pas st.metric) : le texte "Arbre de Décision" ne se
+    # Cartes en HTML (pas st.metric) : le texte "SVM (linéaire)" ne se
     # tronque jamais, même dans la barre latérale, étroite.
     st.markdown(
         f"""
         <div style="background:{COLOR_MUTED};border:1px solid {COLOR_BORDER};
                     border-radius:10px;padding:12px 14px;margin-bottom:10px;">
           <div style="font-size:0.8rem;color:{COLOR_PRIMARY};font-weight:600;">Modèle utilisé</div>
-          <div style="font-size:1.1rem;font-weight:700;color:#0F172A;">Arbre de Décision</div>
+          <div style="font-size:1.1rem;font-weight:700;color:#0F172A;">SVM (linéaire)</div>
         </div>
         <div style="background:{COLOR_MUTED};border:1px solid {COLOR_BORDER};
                     border-radius:10px;padding:12px 14px;">
-          <div style="font-size:0.8rem;color:{COLOR_PRIMARY};font-weight:600;">Rappel sur la classe risque</div>
-          <div style="font-size:1.1rem;font-weight:700;color:#0F172A;">{prep['test_recall'] * 100:.1f} %</div>
+          <div style="font-size:0.8rem;color:{COLOR_PRIMARY};font-weight:600;">Précision sur la classe risque</div>
+          <div style="font-size:1.1rem;font-weight:700;color:#0F172A;">{prep['test_precision'] * 100:.1f} %</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
     st.caption(
-        "Le rappel mesure la capacité du modèle à détecter les dossiers "
-        "réellement risqués — la priorité métier pour CrediTrust."
+        "La précision mesure la fiabilité des dossiers signalés comme "
+        "risqués par le modèle : parmi ceux-ci, quelle part l'est vraiment."
     )
 
 
@@ -194,7 +194,7 @@ with tab_analyse:
     col1.markdown(kpi_card("folder", "Dossiers analysés", f"{n_dossiers:,}"), unsafe_allow_html=True)
     col2.markdown(kpi_card("x-circle", "Taux de refus", f"{taux_refus:.1f} %"), unsafe_allow_html=True)
     col3.markdown(kpi_card("banknotes", "Revenu médian", f"{revenu_median:,.0f}"), unsafe_allow_html=True)
-    col4.markdown(kpi_card("target", "Rappel du modèle", f"{prep['test_recall'] * 100:.1f} %"), unsafe_allow_html=True)
+    col4.markdown(kpi_card("target", "Précision du modèle", f"{prep['test_precision'] * 100:.1f} %"), unsafe_allow_html=True)
 
     st.divider()
 
@@ -328,7 +328,7 @@ with tab_simulateur:
         new_scaled[prep["numeric_cols"]] = scaler.transform(new_encoded[prep["numeric_cols"]])
 
         prediction = model.predict(new_scaled)[0]
-        proba_risque = model.predict_proba(new_scaled)[0][1] * 100
+        proba_risque = model.predict_proba(new_scaled)[0, 1] * 100
 
         st.divider()
 
@@ -338,12 +338,16 @@ with tab_simulateur:
             st.markdown(verdict_badge(is_risky=(prediction == 1)), unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown(
-                kpi_card("target", "Probabilité de risque estimée", f"{proba_risque:.1f} %"),
+                kpi_card("target", "Chance de risque estimée", f"{proba_risque:.1f} %"),
                 unsafe_allow_html=True,
             )
             st.caption(
-                "Rappel : ce modèle reproduit les critères d'une décision historique "
-                "(accordé/refusé), pas un vrai indicateur de défaut de paiement constaté."
+                f"Selon la précision du modèle utilisé (SVM linéaire, "
+                f"{prep['test_precision'] * 100:.1f} % de précision sur la classe risque), le "
+                f"crédit pourra ou non être accordé, avec une chance de risque estimée à "
+                f"{proba_risque:.1f} %. Rappel : ce modèle reproduit les critères d'une décision "
+                f"historique (accordé/refusé), pas un vrai indicateur de défaut de paiement "
+                f"constaté."
             )
 
         with col_gauge:
@@ -365,8 +369,11 @@ with tab_simulateur:
             st.plotly_chart(fig_gauge, width="stretch")
 
         with st.expander("Quels facteurs pèsent le plus dans les décisions du modèle ?"):
+            # SVM linéaire : pas de feature_importances_ (spécifique aux arbres).
+            # On utilise la valeur absolue des coefficients (mêmes variables
+            # standardisées qu'à l'entraînement, donc comparables entre elles).
             importances = pd.Series(
-                model.feature_importances_, index=prep["encoded_columns"]
+                abs(model.coef_[0]), index=prep["encoded_columns"]
             ).sort_values(ascending=False).head(5).reset_index()
             importances.columns = ["Variable", "Importance"]
             fig_imp = px.bar(

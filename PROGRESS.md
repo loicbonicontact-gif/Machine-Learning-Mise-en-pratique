@@ -193,7 +193,40 @@
     60 cellules, 0 erreur. Commité et poussé. Copie locale dans
     `archive/Modélisation - CrediTrust Scoring/` resynchronisée.
 
+## Où on en est (suite 11, 2026-09-16)
+- Sur demande de Loïc : changement du critère de choix du modèle du dashboard,
+  du rappel vers la **précision (classe risque)**. Tableau nb_03 (jeu de
+  test) : SVM linéaire 0.895, Régression Logistique 0.857, Random Forest
+  0.704, KNN 0.556, Arbre de Décision 0.444 (le pire — cohérent avec son
+  sur-apprentissage déjà observé).
+- `dashboard/train_model.py` : modèle changé pour `SVC(kernel='linear',
+  probability=True)` (le `probability=True` est ajouté par rapport à nb_03,
+  nécessaire pour que l'app affiche un pourcentage de risque). Modèle
+  réentraîné, `models/` mis à jour (précision test 0.895, conforme à nb_03).
+- `dashboard/app.py` mis à jour : libellé "Arbre de Décision" → "SVM
+  (linéaire)", "Rappel" → "Précision" (barre latérale + KPI).
+- 2 bugs corrigés dans `app.py` (repérés en testant le simulateur) :
+  - `proba_risque` était un tableau numpy au lieu d'un nombre → plantage au
+    formatage (`f"{proba_risque:.1f}"`). Corrigé avec `[0, 1]` au lieu de
+    `[:, 1]`.
+  - `model.feature_importances_` n'existe que pour les modèles à base
+    d'arbres (Decision Tree/Random Forest) ; le SVM linéaire utilise
+    `model.coef_` à la place (valeur absolue, variables standardisées donc
+    comparables).
+- Sur demande de Loïc : texte du résultat du simulateur reformulé pour éviter
+  le terme "probabilité" (qui donnait l'impression que le modèle sortait
+  souvent 0 %/100 % avec l'ancien Arbre de Décision, un artefact de son
+  sur-apprentissage). Nouveau message : "Selon la précision du modèle
+  utilisé (SVM linéaire, X % de précision...), le crédit pourra ou non être
+  accordé, avec une chance de risque estimée à Y %." Vérifié que le SVM ne
+  sature plus à 0/100 (ex. testé : 21,2 % et 92,3 % sur deux profils).
+- Testé avec `streamlit.testing.v1.AppTest` (chargement + soumission du
+  formulaire) : aucune exception.
+- ⚠️ Pas encore commité/poussé (à faire si Loïc valide le résultat en local).
+
 ## Reste à faire (mis à jour)
+- Loïc valide le dashboard en local (`streamlit run dashboard/app.py`) avant
+  commit/push.
 - Connecter le dépôt GitHub à Streamlit Community Cloud (à faire par Loïc).
 - Vérifier sur GitHub que le notebook nb_01 affiche bien le bon contenu.
 - Décider un jour si on supprime définitivement `archive/` (pour l'instant
