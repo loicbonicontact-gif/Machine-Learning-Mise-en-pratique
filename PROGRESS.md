@@ -159,9 +159,23 @@
   `notebooks/nb_03_Modélisation_CrediTrust_Scoring.ipynb` commitée (sans
   impact sur le contenu, sur demande de Loïc).
 
+## Où on en est (suite 9, 2026-09-16)
+- Rangement local demandé par Loïc :
+  - `notebooks/nb_02_Apprentissage_Supervisé_Classification.ipynb` (racine,
+    suivi par git) remplacé par la version complète avec les 24 cellules
+    de réponses (celle du dossier local) — vérifié cellule par cellule
+    avant copie, aucune perte. Commité et poussé.
+  - Les 4 anciens dossiers par module ("Introduction au Machine Learning et
+    Prétraitement des Données", "Apprentissage Supervisé - Classification",
+    "Modélisation - CrediTrust Scoring", "Dashboard CrediTrust Scoring")
+    regroupés dans un nouveau dossier local `archive/` (toujours ignoré par
+    git en bloc via `/archive/` dans `.gitignore`, plus simple qu'une
+    entrée par dossier). Décision de Loïc : gardés, pas supprimés.
+  - Racine du projet maintenant : `notebooks/`, `data/`, `assets/`,
+    `dashboard/`, `archive/` (local, ignoré), `README.md`, `PROGRESS.md`.
+
 ## Reste à faire (mis à jour)
 - Connecter le dépôt GitHub à Streamlit Community Cloud (à faire par Loïc).
-- Copier le nb_02 complété avec réponses (dossier local) vers `notebooks/`
-  à la racine, commiter et pousser (si Loïc le souhaite un jour).
-- Décider si on supprime un jour les anciens dossiers de module (mis en
-  pause, voir ci-dessus).
+- Vérifier sur GitHub que le notebook nb_01 affiche bien le bon contenu.
+- Décider un jour si on supprime définitivement `archive/` (pour l'instant
+  gardé en local, pas suivi par git).
