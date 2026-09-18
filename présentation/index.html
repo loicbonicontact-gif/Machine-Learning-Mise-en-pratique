@@ -1,0 +1,607 @@
+<title>CrediTrust Scoring</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --navy:#1E40AF;
+    --navy-light:#3B82F6;
+    --navy-deep:#0F172A;
+    --ink:#1E293B;
+    --sub:#475569;
+    --bg:#F3F6FB;
+    --surface:#FFFFFF;
+    --muted:#E9EEF6;
+    --border:#D9E2F3;
+    --amber:#D97706;
+    --green:#15803D;
+    --green-bg:#DCFCE7;
+    --red:#DC2626;
+    --red-bg:#FEE2E2;
+    --shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 24px -12px rgba(15,23,42,.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --navy:#5B8DEF;
+      --navy-light:#7EB0FF;
+      --navy-deep:#EAF0FF;
+      --ink:#E7ECF7;
+      --sub:#A9B6D0;
+      --bg:#0B1220;
+      --surface:#111A2E;
+      --muted:#182238;
+      --border:#26314C;
+      --amber:#F0A94E;
+      --green:#4ADE80;
+      --green-bg:#0F2A1B;
+      --red:#F87171;
+      --red-bg:#3A1414;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 28px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --navy:#5B8DEF;
+    --navy-light:#7EB0FF;
+    --navy-deep:#EAF0FF;
+    --ink:#E7ECF7;
+    --sub:#A9B6D0;
+    --bg:#0B1220;
+    --surface:#111A2E;
+    --muted:#182238;
+    --border:#26314C;
+    --amber:#F0A94E;
+    --green:#4ADE80;
+    --green-bg:#0F2A1B;
+    --red:#F87171;
+    --red-bg:#3A1414;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 28px -14px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    overflow:hidden;
+  }
+  .num{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+
+  #deck{
+    position:relative;
+    width:100%;
+    height:100dvh;
+    overflow:hidden;
+  }
+  .slide{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    padding:clamp(20px,4vw,56px) clamp(20px,6vw,88px);
+    padding-top:calc(clamp(20px,4vw,56px) + env(safe-area-inset-top,0px));
+    opacity:0;
+    transform:translateX(24px);
+    pointer-events:none;
+    transition:opacity .38s ease, transform .38s ease;
+    overflow-y:auto;
+  }
+  .slide.active{
+    opacity:1;
+    transform:translateX(0);
+    pointer-events:auto;
+  }
+  .slide.leaving{ transform:translateX(-24px); }
+  @media (prefers-reduced-motion:reduce){
+    .slide{ transition:opacity .01s linear; transform:none !important; }
+  }
+
+  .kicker{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:.72rem;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--navy);
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .kicker::before{
+    content:"";
+    width:22px;height:2px;background:var(--navy);display:inline-block;
+  }
+  h1,h2,h3{
+    font-family:'Space Grotesk',system-ui,sans-serif;
+    color:var(--navy-deep);
+    text-wrap:balance;
+    margin:0;
+  }
+  .slide h2{ font-size:clamp(1.5rem,3vw,2.35rem); margin-bottom:.15em; }
+  .slide .lede{ color:var(--sub); font-size:clamp(.92rem,1.3vw,1.08rem); max-width:60ch; margin:0 0 clamp(16px,2.4vw,28px); }
+  .content{ flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center; }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    box-shadow:var(--shadow);
+  }
+
+  table{ border-collapse:collapse; width:100%; font-size:.92rem; }
+  th,td{ padding:11px 14px; text-align:right; border-bottom:1px solid var(--border); }
+  th:first-child,td:first-child{ text-align:left; }
+  thead th{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:.68rem; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--sub); font-weight:600; border-bottom:2px solid var(--border);
+  }
+  tbody tr:last-child td{ border-bottom:none; }
+  tr.best td{ color:var(--navy-deep); font-weight:700; }
+  tr.final-row td{ background:var(--muted); font-weight:700; }
+  td.num, th.num{ font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; }
+
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 10px; border-radius:999px;
+    font-size:.74rem; font-weight:600;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .pill.safe{ background:var(--green-bg); color:var(--green); }
+  .pill.risk{ background:var(--red-bg); color:var(--red); }
+
+  /* nav */
+  #nav{
+    position:fixed; left:0; right:0; bottom:0;
+    padding:14px clamp(16px,4vw,40px);
+    padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; z-index:20;
+    background:linear-gradient(to top, var(--bg) 55%, transparent);
+  }
+  #dots{ display:flex; gap:7px; }
+  .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--border); cursor:pointer; border:none; padding:0;
+    transition:background .2s, transform .2s;
+  }
+  .dot.active{ background:var(--navy); transform:scale(1.35); }
+  .navbtns{ display:flex; gap:8px; align-items:center; }
+  .navbtn{
+    width:38px;height:38px;border-radius:10px;
+    border:1px solid var(--border); background:var(--surface);
+    color:var(--navy-deep); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; box-shadow:var(--shadow);
+  }
+  .navbtn:disabled{ opacity:.35; cursor:default; }
+  .navbtn:not(:disabled):hover{ border-color:var(--navy); }
+  .counter{
+    font-family:'IBM Plex Mono',monospace; font-size:.8rem; color:var(--sub);
+    min-width:52px; text-align:center;
+  }
+
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--border); border-radius:8px; }
+
+  /* ---- per-slide layouts ---- */
+  .hero-grid{ display:grid; grid-template-columns:1.15fr .85fr; gap:40px; align-items:center; height:100%; }
+  @media (max-width:800px){ .hero-grid{ grid-template-columns:1fr; } }
+  .hero-title{ font-size:clamp(2.1rem,5.2vw,4rem); line-height:1.03; }
+  .hero-title .accent{ color:var(--navy); }
+  .hero-meta{ display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
+  .badge{
+    font-family:'IBM Plex Mono',monospace; font-size:.72rem; padding:6px 12px;
+    border:1px solid var(--border); border-radius:999px; color:var(--sub);
+  }
+  .hero-visual{ display:flex; flex-direction:column; gap:14px; }
+  .stat-mini{ background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px; box-shadow:var(--shadow); }
+  .stat-mini .n{ font-family:'Space Grotesk'; font-size:1.9rem; color:var(--navy); font-weight:700; }
+  .stat-mini .l{ font-size:.78rem; color:var(--sub); margin-top:2px; }
+
+  .steps{ display:flex; gap:0; align-items:stretch; }
+  .step{ flex:1; position:relative; padding:22px 18px 18px; }
+  .step:not(:last-child)::after{
+    content:"→"; position:absolute; right:-14px; top:26px; color:var(--border);
+    font-size:1.3rem;
+  }
+  .step .idx{
+    font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:var(--navy);
+    font-weight:700; margin-bottom:8px;
+  }
+  .step h3{ font-size:1.02rem; margin-bottom:6px; }
+  .step p{ font-size:.85rem; color:var(--sub); margin:0; line-height:1.45; }
+
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  @media (max-width:800px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+  .stat-card{ padding:20px 20px 18px; }
+  .stat-card .n{ font-family:'Space Grotesk'; font-size:2.1rem; font-weight:700; color:var(--navy-deep); }
+  .stat-card .l{ font-size:.82rem; color:var(--sub); margin-top:4px; }
+
+  .bar-compare{ display:flex; flex-direction:column; gap:10px; }
+  .bar-row{ display:grid; grid-template-columns:150px 1fr 56px; align-items:center; gap:12px; font-size:.86rem; }
+  .bar-track{ height:26px; background:var(--muted); border-radius:6px; overflow:hidden; }
+  .bar-fill{ height:100%; border-radius:6px; }
+
+  .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:32px; height:100%; align-items:start; }
+  @media (max-width:800px){ .two-col{ grid-template-columns:1fr; } }
+  ul.plain{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px; }
+  ul.plain li{ display:flex; gap:10px; font-size:.92rem; line-height:1.5; }
+  ul.plain li::before{ content:"—"; color:var(--navy); flex-shrink:0; font-weight:700; }
+
+  .imp-row{ display:grid; grid-template-columns:170px 1fr 60px; align-items:center; gap:12px; margin-bottom:11px; font-size:.88rem; }
+
+  .shots{ display:grid; grid-template-columns:1.1fr .9fr; gap:22px; height:100%; }
+  @media (max-width:800px){ .shots{ grid-template-columns:1fr; } }
+  .shot-frame{ border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); background:var(--surface); }
+  .shot-frame img{ display:block; width:100%; height:auto; }
+  .shot-stack{ display:flex; flex-direction:column; gap:16px; }
+
+  .reco-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  @media (max-width:800px){ .reco-grid{ grid-template-columns:1fr; } }
+  .reco-card{ padding:18px 20px; }
+  .reco-card h3{ font-size:.98rem; display:flex; gap:9px; align-items:center; margin-bottom:6px; }
+  .reco-card p{ font-size:.85rem; color:var(--sub); margin:0; line-height:1.5; }
+  .dotnum{ width:24px;height:24px;border-radius:7px; background:var(--muted); color:var(--navy); font-family:'IBM Plex Mono'; font-size:.75rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+  .limit-list{ display:flex; flex-direction:column; gap:12px; }
+  .limit-item{ display:flex; gap:12px; align-items:flex-start; padding:14px 16px; }
+  .limit-item svg{ flex-shrink:0; margin-top:2px; color:var(--amber); }
+  .limit-item p{ margin:0; font-size:.87rem; color:var(--sub); line-height:1.5; }
+  .limit-item strong{ color:var(--ink); }
+
+  a.link{ color:var(--navy); font-weight:600; text-decoration:none; border-bottom:1px solid var(--navy); }
+</style>
+
+<div id="deck"></div>
+
+<nav id="nav">
+  <div class="navbtns">
+    <button class="navbtn" id="prevBtn" aria-label="Diapositive précédente">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    </button>
+    <span class="counter" id="counter">1 / 10</span>
+    <button class="navbtn" id="nextBtn" aria-label="Diapositive suivante">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+  <div id="dots"></div>
+  <div style="width:52px"></div>
+</nav>
+
+<script>
+(function(){
+  "use strict";
+
+  var SLIDES = [];
+
+  SLIDES.push({
+    html: `
+    <div class="content hero-grid">
+      <div>
+        <div class="kicker">Activité 5 · Restitution</div>
+        <h1 class="hero-title">CrediTrust <span class="accent">Scoring</span></h1>
+        <p class="lede" style="margin-top:16px;">Un modèle de machine learning pour aider CrediTrust Finance à décider d'accorder ou de refuser une demande de prêt — du jeu de données brut au dashboard utilisable par les analystes.</p>
+        <p style="font-family:'IBM Plex Mono',monospace;font-size:.82rem;color:var(--sub);margin-top:18px;letter-spacing:.02em;">Loïc · Jordan · Brice</p>
+        <div class="hero-meta">
+          <span class="badge">614 dossiers</span>
+          <span class="badge">5 modèles comparés</span>
+          <span class="badge">Random Forest retenu</span>
+          <span class="badge">Dashboard Streamlit</span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="stat-mini"><div class="n">31.3<span style="font-size:1.1rem">%</span></div><div class="l">de dossiers refusés dans l'historique</div></div>
+        <div class="stat-mini"><div class="n">82.1<span style="font-size:1.1rem">%</span></div><div class="l">accuracy du modèle retenu sur le jeu de test</div></div>
+        <div class="stat-mini"><div class="n">50.0<span style="font-size:1.1rem">%</span></div><div class="l">rappel sur la classe "risque" — priorité métier</div></div>
+      </div>
+    </div>`
+  });
+
+  SLIDES.push({
+    html: `
+    <div class="kicker">Contexte</div>
+    <h2>Une décision d'octroi de crédit, aujourd'hui manuelle</h2>
+    <p class="lede">La direction des risques de CrediTrust Finance confie à l'équipe data le développement d'un module de scoring pour fiabiliser et accélérer la décision d'octroi de prêt.</p>
+    <div class="content">
+      <div class="two-col">
+        <div class="card" style="padding:22px 24px;">
+          <h3 style="font-size:1rem;margin-bottom:10px;">La problématique métier</h3>
+          <ul class="plain">
+            <li>Chaque dossier de prêt est aujourd'hui évalué au cas par cas, sans grille de score chiffrée.</li>
+            <li>Un mauvais payeur non détecté coûte cher à la banque — c'est le risque à éviter en priorité.</li>
+            <li>Refuser à tort un bon dossier fait aussi perdre de l'activité, mais reste moins grave financièrement.</li>
+          </ul>
+        </div>
+        <div class="card" style="padding:22px 24px;">
+          <h3 style="font-size:1rem;margin-bottom:10px;">Ce qu'on nous demande</h3>
+          <ul class="plain">
+            <li>Identifier les facteurs de risque de défaut à partir de l'historique des décisions (<code>loan_data.csv</code>).</li>
+            <li>Entraîner et comparer plusieurs modèles de classification binaire (accordé / refusé).</li>
+            <li>Livrer un dashboard pour que les analystes visualisent le portefeuille et testent un dossier en direct.</li>
+          </ul>
+        </div>
+      </div>
+    </div>`
+  });
+
+  SLIDES.push({
+    html: `
+    <div class="kicker">Démarche</div>
+    <h2>Une méthode en 5 étapes, sans fuite de données</h2>
+    <p class="lede">À chaque étape, on garde de côté des dossiers que le modèle ne voit jamais pendant l'entraînement, pour le tester ensuite comme il le serait sur de vrais nouveaux clients.</p>
+    <div class="content">
+      <div class="steps">
+        <div class="step card"><div class="idx">01</div><h3>Analyse exploratoire</h3><p>Distribution des variables, facteurs liés au refus, déséquilibre des classes.</p></div>
+        <div class="step card"><div class="idx">02</div><h3>Prétraitement</h3><p>Valeurs manquantes, encodage, standardisation — appris sur le train uniquement.</p></div>
+        <div class="step card"><div class="idx">03</div><h3>Modélisation</h3><p>5 modèles entraînés et comparés (Accuracy, Précision, Rappel, F1, ROC-AUC).</p></div>
+        <div class="step card"><div class="idx">04</div><h3>Sélection</h3><p>Réglages pour que le modèle généralise bien, sans apprendre les exemples par cœur.</p></div>
+        <div class="step card"><div class="idx">05</div><h3>Dashboard</h3><p>Application Streamlit connectée au modèle retenu, déployée en ligne.</p></div>
+      </div>
+    </div>`
+  });
+
+  SLIDES.push({
+    html: `
+    <div class="kicker">Analyse exploratoire</div>
+    <h2>Le facteur dominant : l'historique de crédit</h2>
+    <p class="lede">Sur les 614 dossiers exploitables (revenus, montant du prêt, historique de crédit, zone géographique...), un facteur se détache très nettement des autres.</p>
+    <div class="content">
+      <div class="stat-grid" style="margin-bottom:22px;">
+        <div class="card stat-card"><div class="n">614</div><div class="l">dossiers analysés</div></div>
+        <div class="card stat-card"><div class="n">31.3<span style="font-size:1.1rem">%</span></div><div class="l">taux de refus global</div></div>
+        <div class="card stat-card"><div class="n">92.1<span style="font-size:1.1rem">%</span></div><div class="l">taux de refus sans bon historique de crédit</div></div>
+        <div class="card stat-card"><div class="n">20.4<span style="font-size:1.1rem">%</span></div><div class="l">taux de refus avec bon historique de crédit</div></div>
+      </div>
+      <div class="card" style="padding:20px 24px;">
+        <div class="bar-compare">
+          <div class="bar-row">
+            <span>Sans bon historique</span>
+            <div class="bar-track"><div class="bar-fill" style="width:92.1%;background:var(--red);"></div></div>
+            <span class="num" style="text-align:right;">92.1%</span>
+          </div>
+          <div class="bar-row">
+            <span>Avec bon historique</span>
+            <div class="bar-track"><div class="bar-fill" style="width:20.4%;background:var(--green);"></div></div>
+            <span class="num" style="text-align:right;">20.4%</span>
+          </div>
+        </div>
+      </div>
+    </div>`
+  });
+
+  SLIDES.push({
+    html: `
+    <div class="kicker">Préparation des données</div>
+    <h2>Rendre les données lisibles par l'algorithme</h2>
+    <div class="content">
+      <div class="two-col">
+        <div class="card" style="padding:22px 24px;">
+          <h3 style="font-size:1rem;margin-bottom:10px;">Ce qu'on a fait</h3>
+          <ul class="plain">
+            <li><strong style="color:var(--ink)">Un examen blanc</strong> : on met 20 % des dossiers de côté dès le départ, et le modèle ne les voit jamais avant l'évaluation finale.</li>
+            <li><strong style="color:var(--ink)">Informations manquantes</strong> : quand une donnée manque (revenu, historique...), on la remplace par une valeur typique du reste des dossiers.</li>
+            <li><strong style="color:var(--ink)">Réponses texte → chiffres</strong> : "marié", "diplômé", "zone urbaine"... sont transformés en chiffres, la seule langue que comprend l'algorithme.</li>
+            <li><strong style="color:var(--ink)">Même échelle pour tous</strong> : les revenus (milliers) et le nombre de personnes à charge (unités) sont ramenés à une échelle comparable, pour qu'aucune variable ne domine juste parce qu'elle a de grands nombres.</li>
+          </ul>
+        </div>
+        <div class="card" style="padding:22px 24px;">
+          <h3 style="font-size:1rem;margin-bottom:10px;">Un jeu de données déséquilibré</h3>
+          <p style="font-size:.9rem;color:var(--sub);line-height:1.55;margin-bottom:14px;">69 % des dossiers sont accordés contre 31 % refusés. On a testé une méthode donnant plus de poids aux dossiers refusés pendant l'entraînement, pour voir si le modèle les repérait mieux.</p>
+          <div class="pill safe" style="margin-bottom:8px;">Un peu plus de mauvais payeurs détectés</div><br>
+          <div class="pill risk">Mais beaucoup plus de bons dossiers refusés à tort</div>
+          <p style="font-size:.82rem;color:var(--sub);margin-top:14px;">→ Compromis défavorable : cette méthode n'a pas été retenue.</p>
+        </div>
+      </div>
+    </div>`
+  });
+
+  SLIDES.push({
+    html: `
+    <div class="kicker">Résultats comparatifs</div>
+    <h2>5 modèles, 5 profils différents</h2>
+    <p class="lede">On a testé 5 méthodes de calcul et on les note toutes sur les mêmes critères, calculés sur les dossiers jamais vus par le modèle.</p>
+    <div class="content">
+      <div class="card" style="padding:14px 20px;margin-bottom:14px;">
+        <p style="font-size:.82rem;color:var(--sub);line-height:1.6;margin:0;">
+          <strong style="color:var(--ink)">Accuracy</strong> : taux de bonnes réponses au global &nbsp;·&nbsp;
+          <strong style="color:var(--ink)">Précision</strong> : fiabilité d'une alerte "risqué" &nbsp;·&nbsp;
+          <strong style="color:var(--ink)">Rappel</strong> : part des mauvais payeurs réellement détectés &nbsp;·&nbsp;
+          <strong style="color:var(--ink)">F1</strong> : équilibre entre précision et rappel &nbsp;·&nbsp;
+          <strong style="color:var(--ink)">ROC-AUC</strong> : qualité globale du classement, entre 0,5 (hasard) et 1 (parfait)
+        </p>
+      </div>
+      <div class="card" style="padding:6px 0;overflow-x:auto;">
+        <table>
+          <thead><tr>
+            <th>Modèle</th><th class="num">Accuracy</th><th class="num">Précision</th><th class="num">Rappel</th><th class="num">F1</th><th class="num">ROC-AUC</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>Arbre de Décision</td><td class="num">65.0%</td><td class="num">44.4%</td><td class="num best">52.6%</td><td class="num">48.2%</td><td class="num">0.616</td></tr>
+            <tr><td>Random Forest</td><td class="num">78.0%</td><td class="num">70.4%</td><td class="num">50.0%</td><td class="num">58.5%</td><td class="num">0.737</td></tr>
+            <tr><td>Régression Logistique</td><td class="num">81.3%</td><td class="num">85.7%</td><td class="num">47.4%</td><td class="num">61.0%</td><td class="num best">0.766</td></tr>
+            <tr><td>SVM (linéaire)</td><td class="num">81.3%</td><td class="num best">89.5%</td><td class="num">44.7%</td><td class="num">59.6%</td><td class="num">0.738</td></tr>
+            <tr><td>KNN</td><td class="num">70.7%</td><td class="num">55.6%</td><td class="num">26.3%</td><td class="num">35.7%</td><td class="num">0.656</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:.82rem;color:var(--sub);margin-top:14px;">L'Arbre de Décision et la Random Forest ont le meilleur rappel brut, mais sur-apprennent fortement (100 % en train) — voir diapositive suivante.</p>
+    </div>`
+  });
+
+  SLIDES.push({
+    html: `
+    <div class="kicker">Affiner le modèle</div>
+    <h2>Éviter qu'il apprenne "par cœur"</h2>
+    <p class="lede">Un modèle trop complexe mémorise les exemples d'entraînement au lieu de comprendre la logique générale — comme un élève qui recopie les réponses sans les comprendre, et qui échoue devant de nouvelles questions.</p>
+    <div class="content">
+      <div class="two-col">
+        <div class="card" style="padding:22px 24px;">
+          <div class="pill risk" style="margin-bottom:14px;">Avant réglage</div>
+          <div class="stat-grid" style="grid-template-columns:1fr 1fr;">
+            <div><div class="n num" style="font-family:'Space Grotesk';font-size:2rem;color:var(--ink);">100%</div><div class="l">de bonnes réponses... sur les exemples déjà vus</div></div>
+            <div><div class="n num" style="font-family:'Space Grotesk';font-size:2rem;color:var(--red);">65%</div><div class="l">seulement sur de nouveaux dossiers</div></div>
+          </div>
+          <p style="font-size:.82rem;color:var(--sub);margin-top:14px;">→ Le modèle a mémorisé au lieu d'apprendre : il ne sera pas fiable en conditions réelles.</p>
+        </div>
+        <div class="card" style="padding:22px 24px;">
+          <div class="pill safe" style="margin-bottom:14px;">Après réglage</div>
+          <div class="stat-grid" style="grid-template-columns:1fr 1fr;">
+            <div><div class="n num" style="font-family:'Space Grotesk';font-size:2rem;color:var(--ink);">86%</div><div class="l">de bonnes réponses sur les exemples déjà vus</div></div>
+            <div><div class="n num" style="font-family:'Space Grotesk';font-size:2rem;color:var(--navy);">82%</div><div class="l">sur de nouveaux dossiers — presque autant</div></div>
+          </div>
+          <p style="font-size:.82rem;color:var(--sub);margin-top:14px;">→ Écart réduit à 4 points : le modèle généralise, il ne récite plus.</p>
+        </div>
+      </div>
+    </div>`
+  });
+
+  SLIDES.push({
+    html: `
+    <div class="kicker">Modèle retenu</div>
+    <h2>Random Forest, le modèle retenu</h2>
+    <p class="lede">Meilleure accuracy et précision de tous les modèles essayés, rappel aussi bon que l'Arbre de Décision d'origine, sans son sur-apprentissage.</p>
+    <div class="content">
+      <div class="two-col">
+        <div class="card" style="padding:22px 24px;">
+          <div class="stat-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:4px;">
+            <div><div class="n num" style="font-family:'Space Grotesk';font-size:1.7rem;color:var(--navy);">82.1%</div><div class="l">Accuracy</div></div>
+            <div><div class="n num" style="font-family:'Space Grotesk';font-size:1.7rem;color:var(--navy);">86.4%</div><div class="l">Précision</div></div>
+            <div><div class="n num" style="font-family:'Space Grotesk';font-size:1.7rem;color:var(--navy);">50.0%</div><div class="l">Rappel</div></div>
+            <div><div class="n num" style="font-family:'Space Grotesk';font-size:1.7rem;color:var(--navy);">0.727</div><div class="l">ROC-AUC</div></div>
+          </div>
+          <p style="font-size:.82rem;color:var(--sub);margin-top:14px;">Écart train/test réduit à ~4 points (contre 22 sans limite de profondeur) — et des probabilités de risque bien réparties (7 % à 85 %), jamais bloquées à 0 % ou 100 %.</p>
+        </div>
+        <div class="card" style="padding:22px 24px;">
+          <h3 style="font-size:.92rem;margin-bottom:14px;color:var(--sub);font-weight:600;">Importance des variables</h3>
+          <div class="imp-row"><span>Historique de crédit</span><div class="bar-track" style="height:16px;"><div class="bar-fill" style="width:38.1%;background:var(--navy);height:100%;"></div></div><span class="num">38.1%</span></div>
+          <div class="imp-row"><span>Revenu du demandeur</span><div class="bar-track" style="height:16px;"><div class="bar-fill" style="width:13.0%;background:var(--navy-light);height:100%;"></div></div><span class="num">13.0%</span></div>
+          <div class="imp-row"><span>Montant du prêt</span><div class="bar-track" style="height:16px;"><div class="bar-fill" style="width:11.7%;background:var(--navy-light);height:100%;"></div></div><span class="num">11.7%</span></div>
+          <div class="imp-row"><span>Revenu du co-demandeur</span><div class="bar-track" style="height:16px;"><div class="bar-fill" style="width:9.5%;background:var(--navy-light);height:100%;"></div></div><span class="num">9.5%</span></div>
+          <div class="imp-row"><span>Durée du prêt</span><div class="bar-track" style="height:16px;"><div class="bar-fill" style="width:4.7%;background:var(--border);height:100%;"></div></div><span class="num">4.7%</span></div>
+        </div>
+      </div>
+    </div>`
+  });
+
+  SLIDES.push({
+    html: `
+    <div class="kicker">Démonstration</div>
+    <h2>Le dashboard Streamlit</h2>
+    <p class="lede">Application en ligne : <a class="link" href="https://creditrust.streamlit.app" target="_blank" rel="noopener">creditrust.streamlit.app</a></p>
+    <div class="content">
+      <div class="shots">
+        <div class="shot-frame"><img src="img/analyse_donnees.png" alt="Onglet Analyse de données du dashboard CrediTrust"/></div>
+        <div class="shot-stack">
+          <div class="shot-frame"><img src="img/simulateur_formulaire.png" alt="Formulaire du simulateur de demande"/></div>
+          <div class="shot-frame"><img src="img/simulateur_resultat.png" alt="Résultat du simulateur : décision et chance de risque"/></div>
+        </div>
+      </div>
+    </div>`
+  });
+
+  SLIDES.push({
+    html: `
+    <div class="kicker">Recommandations & limites</div>
+    <h2>Ce qu'on en fait, et ce qu'il reste à améliorer</h2>
+    <div class="content">
+      <div class="reco-grid" style="margin-bottom:18px;">
+        <div class="card reco-card">
+          <h3><span class="dotnum">1</span>Aide à la décision, pas une automatisation</h3>
+          <p>Avec 50 % de rappel, un dossier risqué sur deux passe encore inaperçu — le modèle doit rester une aide au conseiller, pas un filtre automatique.</p>
+        </div>
+        <div class="reco-card card">
+          <h3><span class="dotnum">2</span>Revue humaine en zone grise</h3>
+          <p>Les dossiers avec une chance de risque entre 40 % et 60 % (probabilités nuancées, pas de verdict tranché) devraient passer en revue manuelle.</p>
+        </div>
+        <div class="reco-card card">
+          <h3><span class="dotnum">3</span>Collecter un vrai historique de défaut</h3>
+          <p>Remplacer le proxy "accordé/refusé" par un vrai indicateur de défaut de paiement constaté améliorerait nettement la fiabilité du modèle.</p>
+        </div>
+        <div class="reco-card card">
+          <h3><span class="dotnum">4</span>Réentraîner régulièrement</h3>
+          <p>Reprendre l'entraînement à mesure que de nouveaux dossiers sont statués, pour que le modèle suive l'évolution du portefeuille.</p>
+        </div>
+      </div>
+      <div class="limit-list">
+        <div class="card limit-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+          <p><strong>Cible imparfaite</strong> — la donnée utilisée reflète une décision d'octroi passée, pas un vrai défaut de paiement constaté.</p>
+        </div>
+        <div class="card limit-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+          <p><strong>Rappel modéré</strong> — 50 % sur la classe risque ; le déséquilibre des classes n'a été que partiellement traité.</p>
+        </div>
+        <div class="card limit-item">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+          <p><strong>Peu de données</strong> — 614 dossiers seulement ; un jeu plus large améliorerait la robustesse du modèle.</p>
+        </div>
+      </div>
+    </div>`
+  });
+
+  var deck = document.getElementById('deck');
+  var dotsEl = document.getElementById('dots');
+  var counterEl = document.getElementById('counter');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var current = 0;
+
+  SLIDES.forEach(function(s, i){
+    var el = document.createElement('section');
+    el.className = 'slide' + (i === 0 ? ' active' : '');
+    el.innerHTML = s.html;
+    deck.appendChild(el);
+
+    var dot = document.createElement('button');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'Aller à la diapositive ' + (i+1));
+    dot.addEventListener('click', function(){ goTo(i); });
+    dotsEl.appendChild(dot);
+  });
+
+  var slideEls = deck.querySelectorAll('.slide');
+  var dotEls = dotsEl.querySelectorAll('.dot');
+
+  function render(){
+    slideEls.forEach(function(el, i){
+      el.classList.toggle('active', i === current);
+    });
+    dotEls.forEach(function(d, i){
+      d.classList.toggle('active', i === current);
+    });
+    counterEl.textContent = (current + 1) + ' / ' + SLIDES.length;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === SLIDES.length - 1;
+    try { localStorage.setItem('creditrust_slide', String(current)); } catch(e){}
+  }
+
+  function goTo(i){
+    current = Math.max(0, Math.min(SLIDES.length - 1, i));
+    render();
+  }
+
+  prevBtn.addEventListener('click', function(){ goTo(current - 1); });
+  nextBtn.addEventListener('click', function(){ goTo(current + 1); });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' '){ goTo(current + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ goTo(current - 1); e.preventDefault(); }
+    else if (e.key === 'Home'){ goTo(0); }
+    else if (e.key === 'End'){ goTo(SLIDES.length - 1); }
+  });
+
+  var touchStartX = null;
+  deck.addEventListener('touchstart', function(e){ touchStartX = e.touches[0].clientX; }, {passive:true});
+  deck.addEventListener('touchend', function(e){
+    if (touchStartX === null) return;
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50){ goTo(current + (dx < 0 ? 1 : -1)); }
+    touchStartX = null;
+  }, {passive:true});
+
+  try {
+    var saved = parseInt(localStorage.getItem('creditrust_slide'), 10);
+    if (!isNaN(saved) && saved >= 0 && saved < SLIDES.length) current = saved;
+  } catch(e){}
+  render();
+})();
+</script>

@@ -1,5 +1,6 @@
 .DS_Store
 .ipynb_checkpoints/
+__pycache__/
 
 # Anciens dossiers par module, archives locales (contenu fusionné dans notebooks/, data/, dashboard/)
 /archive/
