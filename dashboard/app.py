@@ -339,7 +339,7 @@ with tab_simulateur:
             st.markdown(verdict_badge(is_risky=(prediction == 1)), unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
             st.markdown(
-                kpi_card("target", "Chance de risque estimée", f"{proba_risque:.1f} %"),
+                kpi_card("target", "Risque estimé", f"{proba_risque:.1f} %"),
                 unsafe_allow_html=True,
             )
             decision_text = "refusé" if prediction == 1 else "accordé"
@@ -370,21 +370,3 @@ with tab_simulateur:
             fig_gauge.update_layout(height=220, margin=dict(t=20, b=10, l=20, r=20))
             st.plotly_chart(fig_gauge, width="stretch")
 
-        with st.expander("Quels facteurs pèsent le plus dans les décisions du modèle ?"):
-            importances = pd.Series(
-                model.feature_importances_, index=prep["encoded_columns"]
-            ).sort_values(ascending=False).head(5).reset_index()
-            importances.columns = ["Variable", "Importance"]
-            fig_imp = px.bar(
-                importances.sort_values("Importance"),
-                x="Importance",
-                y="Variable",
-                orientation="h",
-                color_discrete_sequence=[COLOR_PRIMARY],
-            )
-            fig_imp.update_layout(margin=dict(t=10, b=10, l=10, r=10))
-            st.plotly_chart(fig_imp, width="stretch")
-            st.caption(
-                "Importance globale du modèle (pas spécifique à ce dossier) : ce sont les "
-                "variables qui, en général, influencent le plus ses décisions."
-            )
